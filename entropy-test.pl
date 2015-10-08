@@ -1,15 +1,17 @@
 #!/usr/bin/perl
 
 ## OpenSSL Entropy Test ##
-
 use strict;
 use warnings;
+use Term::ANSIColor;
 
-my $iterations = 100000;
+my $iterations = 10;
 my $random = `openssl rand -hex 1`;
 
 # Random numbers will increment the corresponding bucket
 my %buckets = ();
+my $tooHigh = 15;
+my $tooLow = 5;
 
 # Build a distribution
 for (my $i = 0; $i < $iterations; $i++) {
@@ -23,9 +25,28 @@ for (my $i = 0; $i < $iterations; $i++) {
 open(LOG, ">", "entropy.log");
 
 # Print the distribution out 0-FF (255)
+my $i = 0;
 while (my ($key, $value) = each(%buckets)) {
-    print "$key => $value\n";
-    print LOG "$key => $value\n";
+    if ($value > $tooHigh) {
+        print color "bold red";
+        print "$key => $value : ";
+        print color "reset";
+    } elsif ($value < $tooLow) {
+        print color "bold blue";
+        print "$key => $value : ";
+        print color "reset"
+    } else {
+        print "$key => $value : ";
+    }
+
+    print LOG "$key => $value : ";
+    if ($i % 8 == 0 ) {
+        print "\n";
+        print LOG "\n";
+    }
+    $i++;
 }
 
+print "\n";
 close LOG;
+
